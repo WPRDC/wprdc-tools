@@ -1,0 +1,42 @@
+services:
+  db:
+    image: postgis/postgis:14-3.2
+    volumes:
+      - ./data/db:/var/lib/postgresql/data
+    ports:
+      - "${POSTGRES_HOST_PORT}:5432"
+    environment:
+      - POSTGRES_DB=${POSTGRES_DB}
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+    expose:
+      - ${POSTGRES_HOST_PORT}
+    networks:
+      main:
+        aliases:
+          - db
+
+  web:
+    build:
+      context: .
+    volumes:
+      - type: bind
+        source: .
+        target: /code
+    ports:
+      - "${DJANGO_PORT}:8000"
+    environment:
+      - POSTGRES_HOST=db
+      - POSTGRES_DB=${POSTGRES_DB}
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - SECRET_KEY=${SECRET_KEY}
+      - DEBUG=${DEBUG}
+    restart: always
+    networks:
+      main:
+    depends_on:
+      - db
+
+networks:
+  main:
