@@ -1,0 +1,86 @@
+{% extends 'lib-guides/base.html' %}
+{% load django_markdown %}
+
+{% block header %}
+<style>
+img {
+	display: block;
+	margin: 0 auto;
+}
+</style>
+    <h1 class="text-center big-title">Data Guide</h1>
+{% endblock %}
+
+
+{% block subheader %}
+    <h2 class="text-center">{{ guide.title }}</h2>
+
+{% endblock %}
+
+{% block content %}
+    {# About #}
+    <div id="about" class="section">
+        <h1>About</h1>
+        {{ guide.about|markdown_safe }}
+        {{ guide.about_ending_media|safe }}
+    </div>
+
+    {# Tools #}
+	{% if tools %}
+    <div id="tools" class="section">
+        <h1>Tools</h1>
+        <p>
+            {{ guide.tools_text|linebreaks }}
+        </p>
+        <div class="row small-up-1">
+            <div class="column">
+                {% for tool in tools %}
+
+                    <div class="callout viz clearfix">
+
+                        <div class="large-7 {% if forloop.counter|divisibleby:2 %}large-push-5{% endif %} columns">
+                            <a href="{{ tool.url }}" target="_blank">
+                                <h3> {{ tool.title }} </h3>
+                            </a>
+                            <p>{{ tool.description|markdown_safe }} </p>
+                        </div>
+
+                        <div class="large-5 {% if forloop.counter|divisibleby:2 %}large-pull-7{% endif %} columns">
+                            <a href="{{ tool.link }}" target="_blank"><img src="{{ tool.pic.url }}"
+                                                                           class="float-right tool-pic"></a>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+	{% endif %}
+
+    {# Data #}
+	{% if datasets %}
+    <div id="data" class="section section-title">
+        <h1>Data</h1>
+        <p>{{ guide.datasets_text }}</p>
+    </div>
+
+    <div class="row small-up-1 medium-up-1 large-up-1">
+        {% for dataset in datasets %}
+            <div class="column">
+                <div class="callout">
+                    <a href="{{ dataset.name }}"><h3>{{ dataset.title }}</h3></a>
+                    <p class="section-description">{{ dataset.description|markdown_safe }}</p>
+                    <p><span class="data-note">{{ dataset.alert_text }}</span></p>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+	{% endif %}
+
+    {# Policies #}
+	{% if guide.policies_text %}
+    <div id="policies" class="section section-title">
+        <h1>Policies</h1>
+        {{ guide.policies_text|markdown_safe }}
+    </div>
+	{% endif %}
+{% endblock %}

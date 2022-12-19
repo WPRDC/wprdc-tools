@@ -1,0 +1,52 @@
+{% extends 'lib-guides/base.html' %}
+{% load django_markdown %}
+
+{% block page_header %}
+    <h1>{{dataset.title}}</h1>
+{% endblock %}
+{% block content %}
+    <hr>
+    <p>{{dataset.body_text|markdown_safe}}</p>
+
+    {% if dataset.publiclyavailabledata_set.all or dataset.notpubliclyavailabledata_set.all %}
+    <h3>What's Included in the Data:</h3>
+    {% endif %}
+
+    {% if dataset.publiclyavailabledata_set.all %}
+    <h5>Publicly Available</h5>
+    <ul class="indented">
+        {% for p in dataset.publiclyavailabledata_set.all %}
+        <li>{{ p.text|markdown_safe }}</li>
+        {% endfor %}
+    </ul>
+    {% endif %}
+
+{% if dataset.notpubliclyavailabledata_set.all %}
+    <h5>Not Pubicly Available</h5>
+    <ul class="indented">
+        {% for np in dataset.notpubliclyavailabledata_set.all %}
+        <li>{{ np.text|markdown_safe }}</li>
+        {% endfor %}
+    </ul>
+{% endif %}
+
+{% if dataset.wheretofind_set.all %}
+    <h3>Where to Find the Data:</h3>
+    <ul>
+        {% for w in dataset.wheretofind_set.all %}
+        <li>{{ w.text|markdown_safe}}</li>
+        {% endfor %}
+    </ul>
+    {% endif %}
+
+    {% if dataset.thingstoknow_set.all or dataset.things_to_know_block_text %}
+    <h3>Things to Know:</h3>
+    {{ dataset.things_to_know_block_text|markdown_safe }}
+    
+    <ul>
+        {% for t in dataset.thingstoknow_set.all %}
+        <li>{{ t.text|markdown_safe }}</li>
+        {% endfor %}
+    </ul>
+    {% endif %}
+{% endblock %}

@@ -1,0 +1,804 @@
+{% extends "valet/base.html" %}
+{% load static %}
+{% block title %}Parking Data Reports{% endblock %}
+
+{% block stylesheet %}
+<link rel="stylesheet" type="text/css" href="{% static 'valet/css/skeleton.css' %}">
+<link rel="stylesheet" type="text/css" href="{% static 'valet/css/normalize.css' %}">
+
+<style>
+table {
+    width: 70%;
+}
+
+th {
+    height: 30px;
+    text-align: right;
+}
+
+td {
+    text-align: right;
+}
+
+.overlay {
+    position: relative;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 100%;
+    width: 100%;
+    opacity: 0;
+    transition: .5s ease;
+    background-color: #fff;
+}
+
+.tooltip {
+    position: relative;
+    display: inline-block;
+    border-bottom: 1px dotted black; /* If you want dots under the hoverable text */
+}
+
+/* Tooltip text */
+.tooltip .tooltiptext {
+    visibility: hidden;
+    width: 24em;
+    background-color: black;
+    color: #fff;
+    text-align: center;
+    border-radius: 6px;
+    padding: 5px 0;
+
+    /* Position the tooltip */
+    position: absolute;
+    z-index: 1;
+    bottom: 100%;
+    left: 50%;
+    margin-left: -12em;
+}
+
+/* Show the tooltip text when you mouse over the tooltip container */
+.tooltip:hover .tooltiptext {
+    visibility: visible;
+}
+
+.tooltip .tooltiptext::after {
+    content: " ";
+    position: absolute;
+    top: 100%; /* At the bottom of the tooltip */
+    left: 50%;
+    margin-left: -5px;
+    border-width: 5px;
+    border-style: solid;
+    border-color: black transparent transparent transparent;
+}
+
+span.formula {
+    font-family: Consolas, Menlo, Monaco, Lucida Console, Liberation Mono, DejaVu Sans Mono, Bitstream Vera Sans Mono, Courier New, monospace;
+    color: black;
+}
+
+div.formula {
+    font-family: Consolas, Menlo, Monaco, Lucida Console, Liberation Mono, DejaVu Sans Mono, Bitstream Vera Sans Mono, Courier New, monospace;
+    color: black;
+    margin-left: 2em;
+    margin-top: 0em;
+    margin-bottom: 0em;
+    margin-block-start: 0em;
+    margin-block-end: 0em;
+}
+
+
+</style>
+{% endblock stylesheet %}
+
+{% block javascript %}
+<script src="{% static 'valet/js/fallback.min.js' %}"></script>
+<script>
+	// Here we actually invoke Fallback JS to retrieve the following libraries for the page.
+	fallback.load({
+		// Include your stylesheets, this can be an array of stylesheets or a string!
+		//page_css: 'index.css',
+		//global_css: ['public.css', 'members.css'],
+        jquery_ui_css: [
+            '//ajax.googleapis.com/ajax/libs/jqueryui/1.12.1/themes/base/jquery-ui.css',
+            '//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css'
+        ],
+		// Here goes a failover example. If the first fails, Fallback JS will load the second!
+		jQuery: [
+			'//ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js',
+			'//cdnjs.cloudflare.com/ajax/libs/jquery/1.12.4/jquery.min.js'
+		],
+		'jQuery.ui': [
+			'//ajax.googleapis.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js',
+			'//cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js',
+			'//js/loader.js?i=vendor/jquery-ui.min.js'
+		],
+        pikaday_css: [
+            '//cdn.jsdelivr.net/npm/pikaday/css/pikaday.css'
+        ]
+	}, {
+		// Shim jQuery UI so that it will only load after jQuery has completed!
+		shim: {
+			'jQuery.ui': ['jQuery']
+		},
+
+		callback: function(success, failed) {
+			// success - object containing all libraries that loaded successfully.
+			// failed - object containing all libraries that failed to load.
+
+			// All of my libraries have finished loading!
+
+			// Execute my code that applies to all of my libraries here!
+		}
+	});
+
+	fallback.ready(['jQuery'], function() {
+		// jQuery Finished Loading
+
+		// Execute my jQuery dependent code here!
+	});
+
+	fallback.ready(['jQuery', 'jQuery.ui'], function() {
+		// jQuery and JSON Finished Loading
+
+		// Execute my jQuery + jQuery.ui dependent code here!
+        $( function() {
+            $("#tabs").tabs();
+            $("#date-tab").css("padding", "0.5rem");
+            $("#tabs").css("display", "block");
+        } );
+	});
+
+	fallback.ready(function() {
+		// All of my libraries have finished loading!
+		// Execute my code that applies to all of my libraries here!
+        $("#id_month").change(refresh_dates);
+        $("#id_year").change(refresh_dates);
+        $("#id_month").change(refresh_features);
+        $("#id_year").change(refresh_features);
+        $("#id_zone").change(refresh_features);
+        $("#id_zone").change(regenerate_output);
+        $("#id_month").change(regenerate_output);
+        $("#id_year").change(regenerate_output);
+
+        $("#date-picker-link").on("click", set_date_picker);
+        activate_overlay(false);
+	});
+</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.4.0/Chart.bundle.min.js"></script>
+<script type="text/javascript">
+    function hide_results(bool) {
+        document.getElementById('results').style.display=(bool?'none':'block');
+    }
+
+    function activate_overlay(bool) {
+        document.getElementById('overlay').style.opacity=(bool?0.5:1.0);
+    }
+
+    function reset_month_picker() {
+          $('#id_month').val(" ");
+          $('#id_year').val(" ");
+    }
+
+    function dateToString(date) {
+        const day = date.getDate();
+        const month = date.getMonth() + 1;
+        const year = date.getFullYear();
+
+        var mm = ((month > 9) ? '' : '0') + month;
+        var dd = ((day > 9)   ? '' : '0') + day;
+
+        return `${year}-${mm}-${dd}`;
+    }
+
+    function synthesize_date(last) {
+        var month = ($("#id_month").val());
+        var year = ($("#id_year").val());
+        if (month != ' ') {
+            if (year != ' ') {
+                if (last) {
+                    var d = new Date(year, month, 0);
+                } else {
+                    var d = new Date(year, month-1, 1); // This produces 2018-02-28 for year=2018, month=3
+                }
+                d.setDate(d.getDate() + 1); // It's not clear why it's necessary to add a day to the
+                // date to make pikaday use the right day, though it might be a UTC/Eastern problem.
+                return dateToString(d);
+            }
+        }
+        return ""
+    }
+
+    function set_date_picker() {
+        // Try to get the date range from the month picker.
+        // If successful, set the date picker to use
+        // that date range (from the first of a month
+        // to the end of that month).
+
+        // Running this function is currently
+        // changing datepicker values, which is
+        // trigering regeneration of the results,
+        // which triggers the overlay. Triggering
+        // the overlay is not necessary if the
+        // date range has not changed.
+        // ACTUALLY, the regeneration of the
+        // results triggered by the datepickers
+        // is not keeping up with changes to
+        // the dates resulting from set_date_picker,
+        // so I've added some forced refreshes
+        // at the end of this function.
+        // The datepicker-triggered regeneration
+        // is causing a bit of a glitch before
+        // the regenerations below catch up.
+
+        // ALSO, the dates set by set_date_picker
+        // are sometimes wrong, but at least
+        // they're now reflected in the output
+        // shown on the browser.
+        from_date = synthesize_date(false);
+        if ((from_date)) {
+            frompicker.setMaxDate(from_date); // Absolutely critical fix to
+            // allow frompicker's date to be correctly set. Previously, the
+            // maximum value (set for frompicker by topicker) could prevent
+            // frompicker from being set to from_date.
+            frompicker.setDate(from_date);
+            // Console output is
+            // Setting frompicker date to Sun Apr 01 2018 00:00:00 GMT-0400 (Eastern Daylight Time)a
+            // but the date picker shows 2018-03-31. Why?
+
+                // Then the Django console says:
+                // get_dts: Retrieved from_date = '2018-03-31' and to_date = '2018-03-31' (The to_date is a lagging residual from when the dates came from the month being 2018-03.)
+                // get_dts: Returning start_dt = 2018-03-31 00:00:00 and end_dt = 2018-04-01 00:00:00
+        }
+        to_date = synthesize_date(true);
+        if ((to_date)) {
+            topicker.setDate(to_date);
+        }
+        if ((from_date) || (to_date)) {
+            refresh_dates();
+            refresh_features();
+            regenerate_output();
+        }
+    }
+
+    function replace_selector_with_options(selector,options) {
+        var $el = $(selector);
+        $el.empty(); // remove old options
+        $.each(options, function(key,value) {
+          $el.append($("<option></option>")
+               .attr("value", value).text(key));
+               });
+    }
+
+    function refresh_features() {
+        var zone = $("#id_zone").val();
+        var month = $("#id_month").val();
+        var year = $("#id_year").val();
+        var from_date = frompicker.toString('YYYY-MM-DD');
+        var to_date = topicker.toString('YYYY-MM-DD');
+
+        if (document.getElementById("date-tab").getAttribute("aria-hidden") == "false") {
+            var search_by = "date";
+        } else if (document.getElementById("month-tab").getAttribute("aria-hidden") == "false") {
+            var search_by = "month";
+        } else {
+            var search_by = "new mode";
+        }
+
+        $.ajax({
+        url: 'ajax/get_features/',
+        data: {
+          'zone': zone,
+          'month': month,
+          'year': year,
+          'search_by': search_by,
+          'from_date': from_date,
+          'to_date': to_date
+        },
+        dataType: 'json',
+        success: function (data) {
+            $("#rate_description").html(data.rate_description);
+            $("#spaces").html(data.spaces);
+            $("#leases").html(data.leases);
+            }
+        });
+    }
+
+    function refresh_dates() {
+        var month = $("#id_month").val();
+        var year = $("#id_year").val();
+        var from_date = frompicker.toString('YYYY-MM-DD');
+        var to_date = topicker.toString('YYYY-MM-DD');
+
+        if (document.getElementById("date-tab").getAttribute("aria-hidden") == "false") {
+            var search_by = "date";
+        } else if (document.getElementById("month-tab").getAttribute("aria-hidden") == "false") {
+            var search_by = "month";
+        } else {
+            var search_by = "new mode";
+        }
+
+        $.ajax({
+        url: 'ajax/get_dates/',
+        data: {
+          'month': month,
+          'year': year,
+          'search_by': search_by,
+          'from_date': from_date,
+          'to_date': to_date,
+        },
+        dataType: 'json',
+        success: function (data) {
+            $("#selected_time_range").html(data.display_time_range);
+            $("#start_dt").html(data.start_dt);
+            $("#end_dt").html(data.end_dt);
+            }
+        });
+    }
+
+    function regenerate_output() {
+        var zone = $("#id_zone").val();
+        var month = $("#id_month").val();
+        var year = $("#id_year").val();
+        var search_by = $("id_search_by").val();
+
+        var from_date = frompicker.toString('YYYY-MM-DD');
+        var to_date = topicker.toString('YYYY-MM-DD');
+
+        if (document.getElementById("date-tab").getAttribute("aria-hidden") == "false") {
+            var search_by = "date";
+        } else if (document.getElementById("month-tab").getAttribute("aria-hidden") == "false") {
+            var search_by = "month";
+        } else {
+            var search_by = "new mode";
+        }
+
+        activate_overlay(true);
+        $.ajax({
+            url: 'ajax/get_results/',
+        data: {
+            'zone': zone,
+            'month': month,
+            'year': year,
+            'search_by': search_by,
+            'from_date': from_date,
+            'to_date': to_date
+        },
+        dataType: 'json',
+        success: function (data) {
+            activate_overlay(false);
+            if (data.valid_date_range) {
+                $("#output").html(data.output_table)
+                $("#u-box").html(data.utilization_w_leases_8_to_10)
+                $("#output_zone").html(data.display_zone)
+                // update chart
+                myChart.data.labels = data.chart_ranges;
+                myChart.config.data.datasets[0].data = data.transactions_chart_data;
+                myChart.config.data.datasets[1].data = data.payments_chart_data;
+                myChart.update();
+                }
+            }
+        });
+    }
+
+</script>
+<script>
+var ctx = document.getElementById("myChart").getContext('2d');
+var myChart = new Chart(ctx, {
+    type: 'bar',
+    data: {
+        labels: {% autoescape off %}{{ chart_ranges }}{% endautoescape %},
+        datasets: [{
+            label: 'Transactions',
+            data: {{ transactions_chart_data }},
+            yAxisID: 'y-axis-1',
+            backgroundColor:
+                'rgba(54, 162, 235, 0.8)',
+            borderColor:
+                'rgba(54, 162, 235, 1)',
+            borderWidth: 1
+        },
+        {
+            label: 'Payments',
+            data: {{ payments_chart_data }},
+            yAxisID: 'y-axis-2',
+            backgroundColor:
+                'rgba(235, 162, 54, 0.8)',
+            borderColor:
+                'rgba(235, 162, 54, 1)',
+            borderWidth: 1
+        }]
+    },
+    options: {
+        tooltips: {
+            mode: 'index',
+            intersect: false,
+            callbacks: {
+                label: function (t, d) {
+                    if (t.datasetIndex === 0) {
+                        return t.yLabel;
+                    } else if (t.datasetIndex === 1) {
+                        return '$' + t.yLabel.toFixed(2);
+                    }
+                }
+            }
+        },
+        responsive: true,
+        animation: {
+            duration: 0
+        },
+        scales: {
+            yAxes: [{
+                ticks: {
+                    beginAtZero:true
+                },
+                display: true,
+                position: 'left',
+                id: 'y-axis-1',
+            },
+            {
+                ticks: {
+                    beginAtZero:true,
+                    // Include a dollar sign in the ticks
+                    callback: function(value, index, values) {
+                        return '$' + value.toFixed(0);
+                    }
+                },
+                display: true,
+                position: 'right',
+                id: 'y-axis-2',
+                gridLines: {
+                    drawOnChartArea: false
+                }
+            }
+            ]
+        }
+    }
+});
+</script>
+{% endblock %}
+
+{% block content %}
+{% if user.is_authenticated %}
+    <div>
+    {% if admin_view %}
+        <div style="float:left"><a href="public/">Switch to public view</a></div>
+    {% else %}
+        <div style="float:left"><a href="nonpublic/">Switch to internal view</a></div>
+    {% endif %}
+        <div style="float:right"><a href="logout/">Log out</a></div>
+    </div>
+    <div style="clear:both"></div>
+{% endif %}
+<div class="container">
+    <div class="row">
+        <div class="eight columns">
+            <b style="font-size: 130%">Pittsburgh Parking Authority: Lots and Metered Parking</b>
+        </div>
+        <div class="two columns">
+            <div>
+                <div style="margin-top:2rem">
+                    <a href="http://www.pittsburghparking.com"><img src="{%static 'valet/img/ppa-logo.gif' %}" alt="[Pittsburgh Parking Authority]" height="60rem" width="auto" max-width="200px">
+                </div>
+            </div>
+        </div>
+        <div class="two columns">
+            <div>
+                <div style="margin-top:2rem">
+                    <a href="https://www.wprdc.org"><img src="{% static 'valet/img/black_wprdc_logo.svg' %}" alt="[WPRDC]" height="40rem" width="auto" max-width="200px"></a>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="row" style="column-rule-style: dashed;">
+         <div class="twelve columns">
+             <form method="post">
+                {% csrf_token %}
+
+                {{ form.non_field_errors }}
+                <div class="fieldWrapper">
+                    <div class="six columns">
+                        <span>
+                            {{ form.zone.errors }}
+                            <b>Zone:</b>
+                            {{ form.zone }}
+                        </span>
+                    </div>
+                    <div class = "six columns">
+                        <div id="tabs" style="display: none;">
+                          <ul>
+                            <li><a href="#month-tab" id="month-picker-link">Month picker</a></li>
+                            <li><a href="#date-tab" id="date-picker-link">Date-range picker</a></li>
+                          </ul>
+                          <div id="month-tab">
+                              <span>
+                                    {{ form.year.errors }}
+                                    <b>Year:</b>
+                                    {{ form.year }}
+                              </span>
+                              &nbsp;
+                              <span>
+                                    {{ form.month.errors }}
+                                    <b>Month:</b>
+                                    {{ form.month }}
+                              </span>
+                          </div>
+                          <div id="date-tab">
+                            <div>
+                                <b>From:</b>
+                                <input type="text" id="fromdatepicker">
+                            </div>
+                            <div>
+                                <b>To:</b>
+                                <input type="text" id="todatepicker">
+                            </div>
+                          </div>
+                        </div>
+
+                    </div>
+                </div>
+
+            </form>
+        </div>
+    </div>
+    <P>
+    <div id="results">
+        <div id="overlay" class="overlay">
+            <div class="row">
+                <div class="twelve columns">
+                    <div id="chart_a">
+                        <canvas id="myChart" width="300" height="50"></canvas>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                {% if admin_view %}
+                <div class="twelve columns">
+                {% else %}
+                <div class="nine columns">
+                {% endif %}
+                    <div id="output">
+                        {% autoescape off %}
+                        {{ output_table }}
+                        {% endautoescape %}
+                    </div>
+                </div>
+                {% if not admin_view and utilization_w_leases_8_to_10 != '-' %}
+                <div class="three columns">
+                    <div style="border: 1px solid black;font-size:90%;text-align:center;margin-top:2.2rem;">
+                        Projected Average Utilization<br>
+                        <span id="u-box" style="font-size:200%">
+                            {{ utilization_w_leases_8_to_10 }}
+                        </span>
+                        <P></P>
+                        <P></P>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+            <div class="row">
+                <div class="twelve columns">
+                    <button onclick="copyTable()">Copy table</button>
+                    <button onclick="download('aggregated_results.csv',)">Download CSV</button>
+                    {% if not admin_view %}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span style="border-style: none; background-color: #fff; border-width: 1px; padding: 0.0rem;"><i>More data</i>: 1) <a style="color: green;" href="https://data.wprdc.org/dataset/pittsburgh-parking-meters-and-payment-points?__no_cache__=True">Map of meters and lots</a>, 2) <a style="color: green;" href="https://data.wprdc.org/organization/ppa">All WPRDC parking data</a></span>{% endif %}
+                </div>
+            </div>
+            <div class="row">
+                <div class="eight columns">
+                    <details>
+                        <summary>Definition of utilization{% if admin_view %}<b>*</b>&dagger;{% endif %}</summary>
+                        A utilization metric can be calculated to estimate the level of parking purchases in a given time interval.
+                        <br>
+                        <br>
+                        As this utilization calculation is based only on the time at which parking is purchased, <b>it does not represent a good estimation of the occupancy of a particular lot or zone</b>. (Specifically, if someone pays at 8am for four hours of parking, all of that revenue is counted in the 8am-10am slot in this calculation, even though a parking space was paid for through noon.)
+                        <br>
+                        <br>
+                        The formula used for calculating utilization is
+                        <div class="formula">Utilization = (Revenue from parking purchases during time slot) / (Revenue if all spaces are paid for during time slot)</div>
+                        <br>
+                        <b>Transient</b> utilization (utilization excluding lease revenue and spaces) would be
+                        <div class="formula">(Revenue from parking during time slot) / { (space_count - 0.85&times;lease_count) &times; (rate per hour) &times; (the number of days in the time span where parking is not free) &times; (duration of time slot in hours) }</div>
+                        <br>
+                        Here we assume 85% occupancy of leased spaces as a reasonable estimate. <span class="formula">(space_count - 0.85&times;lease_count)</span> is an effective space count (the number of parking spaces expected to be available for everyday purchase). By adding in the lease utilization, we can calculate the total utilization:
+                        <div class="formula">Utilization = ([Transient utilization]&times;[effective space count] + 0.85&times;lease_count)/space_count</div>
+                        <div class="formula">&nbsp;&nbsp;&nbsp;&nbsp;= (Revenue from parking purchases during time slot) / { space_count &times; (rate per hour) &times; (the number of days in the time span where parking is not free) &times; (duration of slot in hours) }
+                            <br>
+                            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;+ 0.85&times;lease_count/space_count</div>
+                        or more concisely:
+                        <div class="formula">Utilization = revenue / (space_count &times; rate &times; days &times; hours) + 0.85&times;lease_count/space_count</div>
+                        <br>
+                        {% if admin_view %}
+                        <b>*</b> <i>To make utilization more useful, any revenue from midnight to 8am (typically early morning purchases which take effect at 8am) has been added to the utilization in the 8am-10am slot, which is why that utilization value in the table is bolded.</i>
+                        <br>
+                        <br>
+                        &dagger; <i>Please note that utilizations calculated for the 6pm-midnight range may require careful interpretation if the metering times of the zone are not 6pm-midnight every night of the week.</i>
+                        <br>
+                        <br>
+                        {% endif %}
+                        The source data for the table above can be found <a href="https://data.wprdc.org/dataset/parking-transactions">here</a> and the space counts, rates, and lease counts may be found <a href="https://data.wprdc.org/dataset/zone-and-lot-attributes">here</a>.
+                    </details>
+                </div>
+            </div>
+            <P></P>
+            <div class="row">
+                <div class="six columns">
+                    <u><b style="font-size: 110%">Zone/lot features for selected lot</b></u><br>
+                    <b>Selected lot:</b> <span id="output_zone">{{ display_zone }}</span><br>
+                    <b>Rate:</b> <span id="rate_description">{{ zone_features.rate_description }}</span>, <b>Space count:</b> <span id="spaces">{{ zone_features.spaces }}</span>, <b>Lease count:</b> <span id="leases">{{ zone_features.leases }}</span>
+                </div>
+                <div class="six columns">
+                    <u><b style="font-size: 110%">Date range for selected time range</b></u> <span class="tooltip">&#9432;<span class="tooltiptext">Data available {{ transactions_time_range }}.</span></span><br>
+                    <b>Selected range:</b> <span id="selected_time_range">{{ display_time_range }}</span><br>
+                    <b>Start datetime:</b> <span id="start_dt">{{ start_dt }}</span><br>
+                    <b>End datetime:</b> <span id="end_dt">{{ end_dt }}</span>
+                </div>
+            </div>
+            <!--div class="row">
+                <div class="two columns">
+                    &nbsp;
+                </div>
+                <div class="eight columns">
+                    <span style="font-size: 90%">
+                    <i>Notes:</i> The utilization calculation assumes 85% occupancy of any leases in the corresponding lot.
+                    Sundays and holidays on which parking is not enforced are excluded from the utilization calculation.
+                    </span>
+                </div>
+                <div class="two columns">
+                    &nbsp;
+                </div>
+            </div-->
+        </div>
+    </div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/pikaday/pikaday.js"></script>
+<!--script type="text/javascript" href="{% static 'valet/js/pikaday.js' %}"></script-->
+<script>
+    var frompicker = new Pikaday({
+        field: document.getElementById('fromdatepicker'),
+        format: 'YYYY-MM-DD',
+        toString(date, format) {
+            // This function should do formatting based on the passed format,
+            // but we will just return 'YYYY-MM-DD' for simplicity.
+            const day = date.getDate();
+            const month = date.getMonth() + 1;
+            const year = date.getFullYear();
+
+            var mm = ((month > 9) ? '' : '0') + month;
+            var dd = ((day > 9)   ? '' : '0') + day;
+
+            return `${year}-${mm}-${dd}`;
+        },
+        onDraw: function() { // Reset the month-picker values
+            // whenever the user clicks on the from-date picker,
+            // invoking the calendar view.
+            reset_month_picker();
+        },
+        onSelect: function() {
+            refresh_dates();
+            refresh_features();
+            regenerate_output();
+            topicker.setMinDate(new Date(this.getDate().getTime()+parseInt(0*24*60*60*1000)));
+            if(Number(new Date(this.getDate()))>Number(new Date(document.getElementById('todatepicker').value)))
+            {
+                document.getElementById('todatepicker').value="";
+            }
+        },
+        keyboardInput: false,
+        reposition: false,
+        parse(dateString, format) {
+            // dateString is the result of `toString` method
+            const parts = dateString.split('/');
+            const day = parseInt(parts[0], 10);
+            const month = parseInt(parts[1], 10) - 1;
+            const year = parseInt(parts[2], 10);
+            return new Date(year, month, day);
+        }
+    });
+
+
+    var topicker = new Pikaday({
+        field: document.getElementById('todatepicker'),
+        format: 'YYYY-MM-DD',
+        toString(date, format) {
+            // This function should do formatting based on the passed format,
+            // but we will just return 'YYYY-MM-DD' for simplicity.
+            const day = date.getDate();
+            const month = date.getMonth() + 1;
+            const year = date.getFullYear();
+
+            var mm = ((month > 9) ? '' : '0') + month;
+            var dd = ((day > 9)   ? '' : '0') + day;
+
+            return `${year}-${mm}-${dd}`;
+        },
+        onDraw: function() { // Reset the month-picker values
+            // whenever the user clicks on the to-date picker,
+            // invoking the calendar view.
+            reset_month_picker();
+        },
+        onSelect: function() {
+            frompicker.setMaxDate(new Date(this.getDate().getTime()+parseInt(0*24*60*60*1000)));
+            if(Number(new Date(this.getDate()))<Number(new Date(document.getElementById('fromdatepicker').value)))
+            {
+                document.getElementById('fromdatepicker').value="";
+            }
+            refresh_dates();
+            refresh_features();
+            regenerate_output();
+        },
+        keyboardInput: false,
+        reposition: false,
+        parse(dateString, format) {
+            // dateString is the result of `toString` method
+            const parts = dateString.split('/');
+            const day = parseInt(parts[0], 10);
+            const month = parseInt(parts[1], 10) - 1;
+            const year = parseInt(parts[2], 10);
+            return new Date(year, month, day);
+        }
+    });
+
+    const copyToClipboard = str => {
+      const el = document.createElement('textarea');
+      el.value = str;
+      document.body.appendChild(el);
+      el.select();
+      document.execCommand('copy');
+      document.body.removeChild(el);
+    };
+
+    function reformatTable(useCommas) {
+        var t = document.getElementById("results_table");
+        var trs = t.getElementsByTagName("tr");
+        var importable = "";
+
+        for (var i=0; i<trs.length; i++)
+        {
+            tds = trs[i].getElementsByTagName("td");
+            if (tds.length === 0) {
+                ths = trs[i].getElementsByTagName("th");
+                tds = ths;
+            }
+            for (var n=0; n<tds.length;n++)
+            {
+                if (useCommas) {
+                    importable += '"';
+                }
+                importable += tds[n].textContent;
+                if (useCommas) {
+                    importable = importable.slice(0, -1);
+                    importable += '",';
+                }
+            }
+            importable = importable.slice(0, -1);
+            if (i < trs.length - 1) {
+                importable += "\n";
+            }
+        }
+        return importable;
+    }
+
+    function copyTable() {
+        importable = reformatTable(false);
+        copyToClipboard(importable);
+        alert("Copied the text: " + importable);
+    }
+
+    function download(filename) {
+        text = reformatTable(true);
+        var element = document.createElement('a');
+        element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(text));
+        element.setAttribute('download', filename);
+
+        element.style.display = 'none';
+        document.body.appendChild(element);
+
+        element.click();
+
+        document.body.removeChild(element);
+    }
+</script>
+{% endblock content %}
+{% block footer %}
+{% endblock footer %}

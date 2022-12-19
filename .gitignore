@@ -1,7 +1,14 @@
-data/
+# nonsense
+.idea/
+.DS_Store
+*.pyc
+*.swp
+*.webloc
+__pycache__
 
+# environment
 .env*
 !.env.example
 
-.idea/
-.DS_Store
+# build-specific
+data/

@@ -1,0 +1,9 @@
+.DS_Store
+TODO
+*.swp
+*.pyc
+*.db
+__pycache__/
+*/__pycache__/
+credentials.py
+migrations/
