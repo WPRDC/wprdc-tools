@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     'valet',
     'downstream',
     'spork',
+    'pages',
 ]
 
 MIDDLEWARE = [

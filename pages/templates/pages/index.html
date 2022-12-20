@@ -1,0 +1,31 @@
+{% load static %}
+
+
+<head>
+  <link rel="stylesheet" type="text/css" href="{% static 'pages/pico.classless.min.css' %}">
+  <link rel="stylesheet" type="text/css" href="{% static 'pages/style.css' %}">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>WPRDC Tools</title>
+</head>
+
+<body>
+<header>
+  <h1>WPRDC Tools</h1>
+    <p>Collection of various tools and APIs that work with data on the <a href="https://www.wrpdc.org">WPRDC</a>.</p>
+</header>
+<main>
+  <h2>Tools/Services</h2>
+  <ul>
+    <li><a href="/spork">spork</a> - download data by the sporkful</li>
+    <li><a href="/valet">valet</a> - parking dashboard</li>
+    <li><a href="/property-api">property api</a> - data about parcels all in one endpoint</li>
+    <li><a href="/downstream">downstream</a> - stream large (or any) WPRDC downloads</li>
+  </ul>
+</main>
+<footer>
+  <p><a href="https://www.wrpdc.org">WPRDC</a></p>
+  <p><a href="https://data.wrpdc.org">data.wprdc.org</a></p>
+</footer>
+</body>
+
+

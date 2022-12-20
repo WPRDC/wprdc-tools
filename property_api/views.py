@@ -23,7 +23,7 @@ CACHE_TTL = getattr(settings, 'CACHE_TTL', DEFAULT_TIMEOUT)
 
 
 def index(request):
-    return render(request, 'index.html')
+    return render(request, 'property_api/index.html')
 
 @cache_page(CACHE_TTL)
 def single(request):
