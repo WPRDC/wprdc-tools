@@ -1,9 +1,9 @@
-from django.conf.urls import url
+from django.urls import re_path
 
 from . import views
 
 urlpatterns = [
-    url(r'^$', views.index, name='index'),
-    url(r'^(?P<resource_id>.*)/(?P<field>.*)/(?P<search_term>.*)/csv$', views.csv_view, name='show_csv'),
-    url(r'^(?P<resource_id>.*)/(?P<field>.*)/(?P<search_term>.*)$', views.results, name='results'),
-    ]
+    re_path(r'^$', views.index, name='index'),
+    re_path(r'^(?P<resource_id>.*)/(?P<field>.*)/(?P<search_term>.*)/csv$', views.csv_view, name='show_csv'),
+    re_path(r'^(?P<resource_id>.*)/(?P<field>.*)/(?P<search_term>.*)$', views.results, name='results'),
+]

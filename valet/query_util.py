@@ -1,11 +1,11 @@
-import ckanapi
 from datetime import datetime
-from pprint import pprint
 
+import ckanapi
 from dateutil import parser
 
+
 def get_credentials_and_package_id():
-    from .credentials import site, ckan_api_key as API_key, transactions_package_id as package_id, resource_name
+    from .credentials import site, ckan_api_key as API_key, transactions_package_id as package_id
     #from .credentials import site, ckan_api_key as API_key, debug_package_id as package_id, resource_name
     return site, API_key, package_id
 

@@ -1,12 +1,9 @@
-from django.shortcuts import render
-
 # Create your views here.
-from django.http import HttpResponse
-import requests
-from json2html import *
-import ckanapi
-
 import csv
+
+import ckanapi
+from django.http import HttpResponse
+from json2html import *
 
 DEFAULT_SITE = "https://data.wprdc.org"
 

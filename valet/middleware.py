@@ -1,6 +1,8 @@
-from django.views.debug import technical_500_response
 import sys
+
 from django.conf import settings
+from django.views.debug import technical_500_response
+
 
 class UserBasedExceptionMiddleware(object):
     """Taken from http://ericholscher.com/blog/2008/nov/15/debugging-django-production-environments/

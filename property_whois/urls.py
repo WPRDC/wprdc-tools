@@ -1,9 +1,9 @@
-from django.conf.urls import url
+from django.urls import re_path
 
 from . import views
 
 urlpatterns = [
-    url(r'^$', views.index, name='index'),
-    url(r'^whois/$', views.get_owner),
-    url(r'^whois/(?P<parcel_id>[\w-]+)/$', views.get_owner),
+    re_path(r'^$', views.index, name='index'),
+    re_path(r'^whois/$', views.get_owner),
+    re_path(r'^whois/(?P<parcel_id>[\w-]+)/$', views.get_owner),
 ]

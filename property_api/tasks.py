@@ -6,7 +6,7 @@ from collections import defaultdict
 from .models import CKANResource
 from .utils import chunks, get_batch_data, carto_intersect, intersect
 
-from wprdc_tools.celery import app
+from tools.celery import app
 from celery import current_task
 import json
 

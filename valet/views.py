@@ -1,23 +1,20 @@
-import re, ckanapi, time
-from django.shortcuts import render, redirect
-from django.http import HttpResponse
-from django.http import JsonResponse
-from django.template import loader
+import ckanapi
+import re
+import time
+from collections import defaultdict, OrderedDict
+from datetime import datetime, timedelta, date
+
+from dateutil import parser
 from django import forms
 from django.contrib.auth import logout
-
-from datetime import datetime, timedelta, date
-from dateutil import parser
-
-from pprint import pprint
-from collections import defaultdict, OrderedDict
-
-from .models import SpaceCount, LeaseCount, LastCached
-from .util import parking_days_in_range, format_as_table, format_row, format_date, format_rate_description
-from .query_util import get_revenue_and_count_vectorized, get_credentials_and_package_id, source_time_range
-from .proto_get_revenue import set_table, clear_table, check_table
+from django.http import JsonResponse
+from django.shortcuts import render, redirect
 
 from .credentials import ga_tracking_id, production
+from .models import SpaceCount, LeaseCount, LastCached
+from .proto_get_revenue import set_table, clear_table, check_table
+from .query_util import get_revenue_and_count_vectorized, get_credentials_and_package_id, source_time_range
+from .util import parking_days_in_range, format_as_table, format_row, format_date, format_rate_description
 
 ref_time = 'purchase_time'
 

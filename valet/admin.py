@@ -2,6 +2,7 @@ from django.contrib import admin
 
 from .models import LastCached, SpaceCount, LeaseCount
 
+
 class LastCachedAdmin(admin.ModelAdmin):
     list_display = ['parameter', 'cache_date']
 

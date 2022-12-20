@@ -1,10 +1,12 @@
-import os, requests, csv, ckanapi, time
+import ckanapi
+import os
+import time
+
 from django.http import StreamingHttpResponse, HttpResponse
 from django.shortcuts import redirect
 
 from .ckan_util import get_resource_parameter, get_resource_name, get_package_title, get_row_and_column_counts
 
-from pprint import pprint
 try:
     from icecream import ic
 except ImportError:  # Graceful fallback if IceCream isn't installed.
