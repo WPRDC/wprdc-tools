@@ -20,6 +20,9 @@ done
 echo "🧙‍ Creating superuser"
 ./manage.py createsuperuser --noinput
 
+echo "📥 Collecting static files"
+./manage.py collectstatic --noinput
+
 echo "🆙 Starting..."
 ./manage.py runserver 0.0.0.0:8000
 
