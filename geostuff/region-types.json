@@ -1,0 +1,90 @@
+[
+  {
+    "model": "geostuff.regiontype",
+    "pk": "allegheny_county_municipality",
+    "fields": {
+      "name": "Allegheny County Municipality",
+      "description": "Municipalities"
+    }
+  },
+  {
+    "model": "geostuff.regiontype",
+    "pk": "allegheny_county_school_district",
+    "fields": {
+      "name": "Allegheny County School District",
+      "description": "school districts"
+    }
+  },
+  {
+    "model": "geostuff.regiontype",
+    "pk": "pittsburgh_city_council",
+    "fields": {
+      "name": "Pittsburgh City Council",
+      "description": "City Council"
+    }
+  },
+  {
+    "model": "geostuff.regiontype",
+    "pk": "pittsburgh_dpw_division",
+    "fields": {
+      "name": "Pittsburgh DPW Division",
+      "description": "Public works"
+    }
+  },
+  {
+    "model": "geostuff.regiontype",
+    "pk": "pittsburgh_fire_zone",
+    "fields": {
+      "name": "Pittsburgh Fire Zone",
+      "description": "Pittsburgh Fire Zone"
+    }
+  },
+  {
+    "model": "geostuff.regiontype",
+    "pk": "pittsburgh_neighborhood",
+    "fields": {
+      "name": "Pittsburgh Neighborhood",
+      "description": "Neighborhoods in Pittsburgh"
+    }
+  },
+  {
+    "model": "geostuff.regiontype",
+    "pk": "pittsburgh_police_zone",
+    "fields": {
+      "name": "Pittsburgh Police Zone",
+      "description": "police zones in Pittsburgh"
+    }
+  },
+  {
+    "model": "geostuff.regiontype",
+    "pk": "pittsburgh_ward",
+    "fields": {
+      "name": "Pittsburgh Ward",
+      "description": "Pittsburgh wards"
+    }
+  },
+  {
+    "model": "geostuff.regiontype",
+    "pk": "us_block_group",
+    "fields": {
+      "name": "US Census Block Group",
+      "description": "US Census Block Group"
+    }
+  },
+  {
+    "model": "geostuff.regiontype",
+    "pk": "us_census_block",
+    "fields": {
+      "name": "US Census Block",
+      "description": "census blocks"
+    }
+  },
+  {
+    "model": "geostuff.regiontype",
+    "pk": "us_census_tract",
+    "fields": {
+      "name": "US Census Tract",
+      "description": "US Census Tracts"
+    }
+  }
+]

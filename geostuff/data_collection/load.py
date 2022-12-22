@@ -6,7 +6,6 @@ from geostuff.models import *
 
 from .collection_settings import MODEL_MAPPING, ZIP_MAPPING
 
-SOURCE_DIR = os.path.dirname(os.path.realpath(__file__)) + "/source_data/"
 
 
 
@@ -37,7 +36,7 @@ def run(update_parcel=False, update_addr=False, verbose=True, mapping=MODEL_MAPP
 
     for title, data in mapping.items():
         print(title)
-        shp = SOURCE_DIR + data['source']
+        shp = data['source']
         mapping = data['mapping']
         model = globals()[data['model']]
         lm = LayerMapping(

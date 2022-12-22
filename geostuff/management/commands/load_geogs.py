@@ -5,5 +5,5 @@ from geostuff.data_collection.load import run
 
 class Command(BaseCommand):
 
-    def handle(self):
+    def handle(self, *args, **kwargs):
         run()

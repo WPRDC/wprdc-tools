@@ -23,6 +23,10 @@ echo "🧙‍ Creating superuser"
 echo "📥 Collecting static files"
 ./manage.py collectstatic --noinput
 
+echo "🗺️ Loading Geography Types"
+./manage.py loaddata geostuff/region-types.json
+
+
 echo "🆙 Starting..."
 ./manage.py runserver 0.0.0.0:8000
 

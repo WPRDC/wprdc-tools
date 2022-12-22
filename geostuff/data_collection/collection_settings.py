@@ -1,7 +1,7 @@
 import os
 from pathlib import Path
 
-BASE_DIR = Path(os.path.dirname(os.path.realpath(__file__)))
+BASE_DIR = Path(os.path.dirname(os.path.realpath(__file__))) / 'source_data'
 
 MODEL_MAPPING = {
     "pittsburgh_neighborhood": {
