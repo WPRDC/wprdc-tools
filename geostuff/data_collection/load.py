@@ -21,7 +21,7 @@ def add_address_city(zips=ZIP_MAPPING):
             print('ERROR: {}'.format(address.zip_code))
 
 
-def run(update_parcel=False, update_addr=False, verbose=True, mapping=MODEL_MAPPING):
+def run(update_parcel=True, update_addr=True, verbose=True, mapping=MODEL_MAPPING):
     # if updating parcel, first truncate its table, otherwise remove it from mapping so it's not updated
     if update_parcel:
         Parcel.objects.all().delete()
