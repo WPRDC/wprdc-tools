@@ -1,0 +1,15 @@
+STUDY_ID,STREET_ADDRESS,CITY,STATE,ZIP,latitude,longitude,full_address,geom_type,latitude,longitude,census_tract,allegheny_county_municipality,geocoding_status
+8444444302,6278 EAST LIBERTY BLVD,PITTSBURGH,PA,15206,,,"6278 EAST LIBERTY BLVD, PITTSBURGH, PA 15206",,,,,,Unable to geocode this address to a single unambigous point.
+1,22 THIRD ST,ASPINWALL,PA,15215,40.492933703837,-79.9076435643135,"22 THIRD ST, ASPINWALL, PA 15215",Point,40.492933703837,-79.9076435643135,42003423000,Aspinwall Borough,OK
+8444444354,172 NORTH SECOND STREET,WEST NEWTON,PA,15089,,,"172 NORTH SECOND STREET, WEST NEWTON, PA 15089",,,,Unable to geocode this address to a single unambigous point.
+8444446947,234 PATTISON AVE,BRADDOCK,PA,15104,,,"234 PATTISON AVE, BRADDOCK, PA 15104",,,,Unable to geocode this address to a single unambigous point.
+8444448267,313 JACOBS STREET,PITTSBURGH,PA,15210,,,"313 JACOBS STREET, PITTSBURGH, PA 15210",,,,Unable to geocode this address to a single unambigous point.
+8444448225,8766 WASHINGTON HTS,PITTSBURGH,PA,15237,,,"8766 WASHINGTON HTS, PITTSBURGH, PA 15237",,,,Unable to geocode this address to a single unambigous point.
+8444443095,4874 COLE RD,MURRYSVILLE,PA,15668,,,"4874 COLE RD, MURRYSVILLE, PA 15668",,,,Unable to geocode this address to a single unambigous point.
+8444441469,1403 WOODLAWN ST,PITTSBURGH,PA,15221-2623,,,"1403 WOODLAWN ST, PITTSBURGH, PA 15221-2623",,,,Unable to geocode this address to a single unambigous point.
+8444449984,768 SAXONBURG BLVD,SAXONBURG,PA,16056,,,"768 SAXONBURG BLVD, SAXONBURG, PA 16056",,,,Unable to geocode this address to a single unambigous point.
+8444449993,P.O. BOX 59365,PITTSBURGH,PA,15210,,,"P.O. BOX 59365, PITTSBURGH, PA 15210",,,,Unable to geocode this address to a single unambigous point.
+8444444302,6278 EAST LIBERTY BLVD,PITTSBURGH,PA,15206,,,"6278 EAST LIBERTY BLVD, PITTSBURGH, PA 15206",,,,Unable to geocode this address to a single unambigous point.
+1,22 THIRD ST,ASPINWALL,PA,15215,40.492933703837,-79.9076435643135,"22 THIRD ST, ASPINWALL, PA 15215",Point,42003423000,Aspinwall Borough,OK
+3,255 EAST OHIO ST,PITTSBURGH,PA,15212,,,"255 EAST OHIO ST, PITTSBURGH, PA 15212",,,,Unable to geocode this address to a single unambigous point.
+4,255 E OHIO ST,PITTSBURGH,PA,15212,,,"255 E OHIO ST, PITTSBURGH, PA 15212",,,,Unable to geocode this address to a single unambigous point.

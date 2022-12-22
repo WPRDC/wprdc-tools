@@ -24,6 +24,7 @@ urlpatterns = [
     path('valet/', include('valet.urls')),
     path('parking/', include('valet.urls')),
     path('downstream/', include('downstream.urls')),
+    path('geo/', include('geostuff.urls')),
     path('', include('pages.urls')),
 
 ]

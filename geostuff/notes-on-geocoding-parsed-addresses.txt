@@ -1,0 +1,97 @@
+diff --git a/urls.py b/urls.py
+index 8046393..ff4922d 100644
+--- a/urls.py
++++ b/urls.py
+@@ -25,6 +25,7 @@ urlpatterns = [
+ 
+     url(r'^reverse_geocode/$', views.reverse_geocode, name='reverse_geocode'),
+     url(r'^geocode/$', views.geocode, name='geocode'),
++    url(r'^geocode_parts/$', views.geocode_preparsed_address, name='geocode_preparsed_address'), ##
+     url(r'^address_search/$', views.address_search, name='addr_search'),
+ 
+     url(r'^upload/$', views.upload_file, name="file_upload")
+diff --git a/views.py b/views.py
+index d337051..b3afaf6 100644
+--- a/views.py
++++ b/views.py
+@@ -9,9 +9,10 @@ from collections import OrderedDict
+ 
+ import json
+ import csv
++import sys, traceback ##
+ 
+ from .models import *
+-from .util import parse_options, parse_coord_string, parse_address_string, geocode_file, geocode_from_address_string, forward_geocode, spatial_query
++from .util import parse_options, parse_coord_string, parse_address_string, geocode_file, geocode_from_address_string, forward_geocode, spatial_query, geocode_from_address_parts, fix_street_type
+ from .forms import GeoserviceFileForm
+ 
+ 
+@@ -260,6 +261,68 @@ def geocode(request):
+ 
+     return JsonResponse(response, status=200)
+ 
++def geocode_preparsed_address(request):
++    """Accept the parameters required to construct an Address Point (as
++    utilized in Geomancer/util.py) and return the corresponding 
++    geocoordinates."""
++    try:
++        number = request.GET.get('number', None)
++        directional = request.GET.get('directional', None)
++        street_name = request.GET.get('street_name', None)
++        street_type = request.GET.get('street_type', None)
++        city = request.GET.get('city', None)
++        state = request.GET.get('state', None)
++        zip_code = request.GET.get('zip_code', None)
++
++        if number is not None:
++            number = str(number).upper()
++        if directional is not None:
++            directional = directional.upper()
++        if street_name is not None:
++            street_name = street_name.upper()
++        if street_type is not None:
++            street_type = fix_street_type(street_type.upper())
++        if city is not None:
++            city = city.upper()
++        if state is not None:
++            state = state.upper()
++        if zip_code is not None:
++            zip_code = str(zip_code).upper()
++
++        address_point = { 'number': number, 'directional': directional,
++                'street_name': street_name, 'street_type': street_type,
++                'city': city, 'state': state, 'zip_code': zip_code }
++       
++        response = {'data': {}, 'address_point': address_point}
++   
++    #try:
++        response['data'] = geocode_from_address_parts(address_point)
++
++        addr = AddressPoint.objects.filter(
++        address_number=address_point['number'],
++        street_prefix=address_point['directional'],
++        street_name__startswith=address_point['street_name'],
++        street_type=address_point['street_type'],
++        zip_code= address_point['zip_code']
++        )
++
++        addr_city = AddressPoint.objects.filter(
++        address_number=address_point['number'],
++        street_prefix=address_point['directional'],
++        street_name__startswith=address_point['street_name'],
++        street_type=address_point['street_type'],
++        city__startswith=address_point['city']
++        )
++        response['AddressPoint_zip.objects.filter'] = "length = {}".format(len(addr))
++        response['AddressPoint_city.objects.filter'] = "length = {}".format(len(addr_city))
++    except:
++        exc_type, exc_value, exc_traceback = sys.exc_info()
++        lines = traceback.format_exception(exc_type, exc_value, exc_traceback)
++        error_string = "{}: {}".format(exc_type, ''.join('!!! ' + line for line in lines))
++        response['error'] = error_string
++        #response['error'] = "{}".format(exc_type) #"Does Not Compute"
++
++    return JsonResponse(response, status=200)
+ 
+ def address_search(request):
+     upload_form = GeoserviceFileForm
