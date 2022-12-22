@@ -220,7 +220,6 @@ MODEL_MAPPING = {
             "geom": "MULTIPOLYGON"
         }
     },
-
     "address": {
         "source": BASE_DIR / "ac_address_points/Allegheny_County_Address_Points.shp",
         "model": "AddressPoint",

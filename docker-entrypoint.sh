@@ -26,6 +26,7 @@ echo "📥 Collecting static files"
 echo "🗺️ Loading Geography Types"
 ./manage.py loaddata geostuff/region-types.json
 
+./manage.py load_geogs
 
 echo "🆙 Starting..."
 ./manage.py runserver 0.0.0.0:8000
