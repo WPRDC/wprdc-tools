@@ -23,10 +23,11 @@ echo "🧙‍ Creating superuser"
 echo "📥 Collecting static files"
 ./manage.py collectstatic --noinput
 
-echo "🗺️ Loading Geography Types"
-./manage.py loaddata geostuff/region-types.json
-
-./manage.py load_geogs
+# TODO: move to separate dev scripts or check for env variable or something
+#echo "🗺️ Loading Geography Types"
+#./manage.py loaddata geostuff/region-types.json
+#
+#./manage.py load_geogs
 
 echo "🆙 Starting..."
 ./manage.py runserver 0.0.0.0:8000

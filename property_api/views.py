@@ -1,29 +1,26 @@
-from django.shortcuts import render
-from django.http import HttpResponse, JsonResponse
-from django.views.decorators.csrf import csrf_exempt
-from django.core.cache.backends.base import DEFAULT_TIMEOUT
-from django.conf import settings
-from django.views.decorators.cache import cache_page
-
-
-import time
-import json
 import csv
-from collections import OrderedDict as OD, defaultdict
+import json
+import time
+from collections import OrderedDict as OD
+
+from django.http import HttpResponse, JsonResponse
+from django.shortcuts import render
+from django.views.decorators.cache import cache_page
+from django.views.decorators.csrf import csrf_exempt
 
 from .models import CKANResource
-from .utils import get_data, get_batch_data, carto_intersect, to_geojson, to_csv, data_in_shape, get_parcels, \
-    get_owner_name
-
 from .tasks import async_data_in_shape
+from .utils import get_data, get_batch_data, carto_intersect, to_geojson, to_csv, get_parcels, \
+    get_owner_name
 
 DATATYPES = ['json', 'geojson', 'csv', 'carto']
 
-CACHE_TTL = getattr(settings, 'CACHE_TTL', DEFAULT_TIMEOUT)
+CACHE_TTL = 10 * 60 * 24
 
 
 def index(request):
     return render(request, 'property_api/index.html')
+
 
 @cache_page(CACHE_TTL)
 def single(request):
